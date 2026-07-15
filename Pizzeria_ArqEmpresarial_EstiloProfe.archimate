@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archimate:model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xmlns:archimate="http://www.archimatetool.com/archimate"
+                 name="Pizzeria - Arquitectura Empresarial 4 Dominios"
+                 id="id-pizza-model"
+                 version="4.0">
+
+  <!-- ═══════════════════════════
+       BUSINESS LAYER (Arq. Negocio)
+  ════════════════════════════ -->
+  <folder name="Business" id="id-folder-biz" type="business">
+    <element xsi:type="archimate:BusinessActor"   id="id-cliente"    name="CLIENTE"/>
+    <element xsi:type="archimate:BusinessRole"    id="id-cajero"     name="CAJERO"/>
+    <element xsi:type="archimate:BusinessProcess" id="id-proc-venta" name="VENTA DE PIZZAS (REGISTRO EN CAJA)"/>
+    <element xsi:type="archimate:BusinessProcess" id="id-proc-envio" name="ENVIO VENTAS A SC Y SAD (11PM)"/>
+  </folder>
+
+  <!-- ═══════════════════════════
+       APPLICATION LAYER (Arq. Aplicaciones + Datos)
+  ════════════════════════════ -->
+  <folder name="Application" id="id-folder-app" type="application">
+    <!-- Sistemas -->
+    <element xsi:type="archimate:ApplicationComponent" id="id-caja"      name="SISTEMA DE CAJA (X5 LOCALES)"/>
+    <element xsi:type="archimate:ApplicationComponent" id="id-sc"        name="SISTEMA DE CONTABILIDAD - SC (MVC)"/>
+    <element xsi:type="archimate:ApplicationComponent" id="id-sc-vista"  name="VISTA"/>
+    <element xsi:type="archimate:ApplicationComponent" id="id-sc-ctrl"   name="CONTROLADOR"/>
+    <element xsi:type="archimate:ApplicationComponent" id="id-sc-model"  name="MODELO (HA ACTIVO-ACTIVO)"/>
+    <element xsi:type="archimate:ApplicationComponent" id="id-sad"       name="SIST. ANALITICA DE DATOS - SAD (MVC)"/>
+    <element xsi:type="archimate:ApplicationComponent" id="id-sad-vista" name="VISTA"/>
+    <element xsi:type="archimate:ApplicationComponent" id="id-sad-ctrl"  name="CONTROLADOR"/>
+    <element xsi:type="archimate:ApplicationComponent" id="id-sad-model" name="MODELO"/>
+
+    <!-- Arquitectura de Datos -->
+    <element xsi:type="archimate:DataObject" id="id-do-ventas" name="VENTAS (CAJA)"/>
+    <element xsi:type="archimate:DataObject" id="id-do-sc"     name="VENTAS SC"/>
+    <element xsi:type="archimate:DataObject" id="id-do-sad"    name="VENTAS SAD"/>
+  </folder>
+
+  <!-- ═══════════════════════════
+       TECHNOLOGY LAYER (Arq. Tecnologia)
+  ════════════════════════════ -->
+  <folder name="Technology &amp; Physical" id="id-folder-tech" type="technology">
+    <element xsi:type="archimate:Node" id="id-nodo-caja" name="NODO CAJA (POR LOCAL)"/>
+    <element xsi:type="archimate:Node" id="id-nodo-sc1"  name="NODO SC ACTIVO 1 (OFICINA PRINCIPAL)"/>
+    <element xsi:type="archimate:Node" id="id-nodo-sc2"  name="NODO SC ACTIVO 2 (NUBE AWS)"/>
+    <element xsi:type="archimate:Node" id="id-nodo-sad"  name="SERVIDOR SAD"/>
+    <element xsi:type="archimate:Node" id="id-bd-sc1"    name="BD MODEL SC (ACTIVO 1)"/>
+    <element xsi:type="archimate:Node" id="id-bd-sc2"    name="BD MODEL SC (ACTIVO 2)"/>
+    <element xsi:type="archimate:Node" id="id-bd-sad"    name="BD SAD"/>
+    <element xsi:type="archimate:Node" id="id-srv-bkp"   name="SERVIDOR DE RESPALDOS"/>
+
+    <element xsi:type="archimate:TechnologyProcess" id="id-proc-bkp" name="BKP TODOS LOS SISTEMAS (DIARIO 9PM)"/>
+
+    <element xsi:type="archimate:Artifact" id="id-art-caja" name="CAJA.BKP"/>
+    <element xsi:type="archimate:Artifact" id="id-art-sc"   name="SC.BKP"/>
+    <element xsi:type="archimate:Artifact" id="id-art-sad"  name="SAD.BKP"/>
+  </folder>
+
+  <!-- ═══════════════════════════
+       OTHER (Locations)
+  ════════════════════════════ -->
+  <folder name="Other" id="id-folder-other" type="other">
+    <element xsi:type="archimate:Location" id="id-loc-local"   name="LOCALES DE VENTA X5 (LIMA)"/>
+    <element xsi:type="archimate:Location" id="id-loc-oficina" name="OFICINA PRINCIPAL"/>
+    <element xsi:type="archimate:Location" id="id-loc-aws"     name="NUBE AWS"/>
+  </folder>
+
+  <!-- ═══════════════════════════
+       RELATIONS
+  ════════════════════════════ -->
+  <folder name="Relations" id="id-folder-rel" type="relations">
+
+    <!-- Negocio -->
+    <element xsi:type="archimate:AssociationRelationship" id="rel-01"
+             source="id-cliente" target="id-proc-venta"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-18"
+             source="id-cajero" target="id-proc-venta"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-02"
+             source="id-caja" target="id-proc-venta"/>
+
+    <!-- Datos: la caja registra las ventas -->
+    <element xsi:type="archimate:AccessRelationship" id="rel-03" accessType="write"
+             source="id-caja" target="id-do-ventas"/>
+
+    <!-- Envio diario de ventas 11pm -->
+    <element xsi:type="archimate:FlowRelationship" id="rel-04" name="ENVIO VENTAS (11PM)"
+             source="id-caja" target="id-sc"/>
+    <element xsi:type="archimate:FlowRelationship" id="rel-05" name="ENVIO VENTAS (11PM)"
+             source="id-caja" target="id-sad"/>
+
+    <!-- Los MODEL escriben en sus BD -->
+    <element xsi:type="archimate:AccessRelationship" id="rel-06" accessType="write"
+             source="id-sc-model" target="id-do-sc"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-07" accessType="write"
+             source="id-sad-model" target="id-do-sad"/>
+
+    <!-- HA activo-activo capa model SC: oficina <-> AWS -->
+    <element xsi:type="archimate:FlowRelationship" id="rel-08" name="REPLICACION ACTIVO-ACTIVO (CAPA MODEL)"
+             source="id-bd-sc1" target="id-bd-sc2"/>
+    <element xsi:type="archimate:FlowRelationship" id="rel-09"
+             source="id-bd-sc2" target="id-bd-sc1"/>
+
+    <!-- Respaldo 9pm de todos los sistemas -->
+    <element xsi:type="archimate:FlowRelationship" id="rel-10" name="RESPALDO 9PM"
+             source="id-nodo-caja" target="id-proc-bkp"/>
+    <element xsi:type="archimate:FlowRelationship" id="rel-11"
+             source="id-nodo-sc1" target="id-proc-bkp"/>
+    <element xsi:type="archimate:FlowRelationship" id="rel-12"
+             source="id-nodo-sad" target="id-proc-bkp"/>
+
+    <element xsi:type="archimate:AccessRelationship" id="rel-13" accessType="write"
+             source="id-proc-bkp" target="id-art-caja"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-14" accessType="write"
+             source="id-proc-bkp" target="id-art-sc"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-15" accessType="write"
+             source="id-proc-bkp" target="id-art-sad"/>
+
+    <!-- Al terminar OK el bkp de 9pm, inicia el envio de 11pm -->
+    <element xsi:type="archimate:TriggeringRelationship" id="rel-16" name="TERMINA OK (9PM) -> INICIA (11PM)"
+             source="id-proc-bkp" target="id-proc-envio"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-17" name="EJECUTA EL ENVIO"
+             source="id-proc-envio" target="id-caja"/>
+
+  </folder>
+
+  <!-- ═══════════════════════════
+       VIEWS
+  ════════════════════════════ -->
+  <folder name="Views" id="id-folder-views" type="diagrams">
+    <element xsi:type="archimate:ArchimateDiagramModel" id="id-view-pizza"
+             name="Pizzeria - Arquitectura Empresarial (4 Dominios)">
+
+      <!-- ══ NEGOCIO (fila superior) ══ -->
+      <child xsi:type="archimate:DiagramObject" id="do-cliente"
+             archimateElement="id-cliente"
+             fillColor="#FFFFB5" textAlignment="2">
+        <bounds x="40" y="30" width="140" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="conn-01"
+                          source="do-cliente" target="do-proc-venta" archimateRelationship="rel-01"/>
+      </child>
+
+      <child xsi:type="archimate:DiagramObject" id="do-cajero"
+             archimateElement="id-cajero"
+             fillColor="#FFFFB5" textAlignment="2">
+        <bounds x="200" y="30" width="140" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="conn-18"
+                          source="do-cajero" target="do-proc-venta" archimateRelationship="rel-18"/>
+      </child>
+
+      <child xsi:type="archimate:DiagramObject" id="do-proc-venta"
+             archimateElement="id-proc-venta" targetConnections="conn-01 conn-18 conn-02"
+             fillColor="#FFFFB5" textAlignment="2">
+        <bounds x="360" y="30" width="250" height="55"/>
+      </child>
+
+      <!-- ══ LOCALES DE VENTA X5 ══ -->
+      <child xsi:type="archimate:DiagramObject" id="do-loc-local"
+             archimateElement="id-loc-local"
+             fillColor="#E8C6DC" textAlignment="2">
+        <bounds x="40" y="140" width="330" height="340"/>
+
+        <child xsi:type="archimate:DiagramObject" id="do-nodo-caja"
+               archimateElement="id-nodo-caja"
+               fillColor="#C9E7B7" textAlignment="2">
+          <bounds x="25" y="45" width="280" height="270"/>
+          <sourceConnection xsi:type="archimate:Connection" id="conn-10"
+                            source="do-nodo-caja" target="do-proc-bkp" archimateRelationship="rel-10"/>
+
+          <child xsi:type="archimate:DiagramObject" id="do-caja"
+                 archimateElement="id-caja" targetConnections="conn-17"
+                 fillColor="#B5FFFF" textAlignment="2">
+            <bounds x="25" y="45" width="230" height="55"/>
+            <sourceConnection xsi:type="archimate:Connection" id="conn-02"
+                              source="do-caja" target="do-proc-venta" archimateRelationship="rel-02"/>
+            <sourceConnection xsi:type="archimate:Connection" id="conn-03"
+                              source="do-caja" target="do-do-ventas" archimateRelationship="rel-03"/>
+            <sourceConnection xsi:type="archimate:Connection" id="conn-04"
+                              source="do-caja" target="do-sc" archimateRelationship="rel-04"/>
+            <sourceConnection xsi:type="archimate:Connection" id="conn-05"
+                              source="do-caja" target="do-sad" archimateRelationship="rel-05"/>
+          </child>
+
+          <child xsi:type="archimate:DiagramObject" id="do-do-ventas"
+                 archimateElement="id-do-ventas" targetConnections="conn-03"
+                 fillColor="#B5FFFF" textAlignment="2">
+            <bounds x="25" y="130" width="230" height="50"/>
+          </child>
+        </child>
+      </child>
+
+      <!-- ══ OFICINA PRINCIPAL ══ -->
+      <child xsi:type="archimate:DiagramObject" id="do-loc-oficina"
+             archimateElement="id-loc-oficina"
+             fillColor="#E8C6DC" textAlignment="2">
+        <bounds x="420" y="140" width="470" height="580"/>
+
+        <!-- Nodo SC activo 1 -->
+        <child xsi:type="archimate:DiagramObject" id="do-nodo-sc1"
+               archimateElement="id-nodo-sc1"
+               fillColor="#C9E7B7" textAlignment="2">
+          <bounds x="25" y="45" width="420" height="250"/>
+          <sourceConnection xsi:type="archimate:Connection" id="conn-11"
+                            source="do-nodo-sc1" target="do-proc-bkp" archimateRelationship="rel-11"/>
+
+          <child xsi:type="archimate:DiagramObject" id="do-sc"
+                 archimateElement="id-sc" targetConnections="conn-04"
+                 fillColor="#B5FFFF" textAlignment="2">
+            <bounds x="20" y="45" width="250" height="190"/>
+
+            <child xsi:type="archimate:DiagramObject" id="do-sc-vista"
+                   archimateElement="id-sc-vista"
+                   fillColor="#B5FFFF" textAlignment="2">
+              <bounds x="15" y="40" width="100" height="45"/>
+            </child>
+            <child xsi:type="archimate:DiagramObject" id="do-sc-ctrl"
+                   archimateElement="id-sc-ctrl"
+                   fillColor="#B5FFFF" textAlignment="2">
+              <bounds x="125" y="40" width="110" height="45"/>
+            </child>
+            <child xsi:type="archimate:DiagramObject" id="do-sc-model"
+                   archimateElement="id-sc-model"
+                   fillColor="#B5FFFF" textAlignment="2">
+              <bounds x="55" y="105" width="150" height="60"/>
+              <sourceConnection xsi:type="archimate:Connection" id="conn-06"
+                                source="do-sc-model" target="do-do-sc" archimateRelationship="rel-06"/>
+            </child>
+          </child>
+
+          <child xsi:type="archimate:DiagramObject" id="do-bd-sc1"
+                 archimateElement="id-bd-sc1" targetConnections="conn-09"
+                 fillColor="#C9E7B7" textAlignment="2">
+            <bounds x="285" y="45" width="120" height="160"/>
+            <sourceConnection xsi:type="archimate:Connection" id="conn-08"
+                              source="do-bd-sc1" target="do-bd-sc2" archimateRelationship="rel-08"/>
+
+            <child xsi:type="archimate:DiagramObject" id="do-do-sc"
+                   archimateElement="id-do-sc" targetConnections="conn-06"
+                   fillColor="#B5FFFF" textAlignment="2">
+              <bounds x="12" y="70" width="96" height="50"/>
+            </child>
+          </child>
+        </child>
+
+        <!-- Servidor SAD -->
+        <child xsi:type="archimate:DiagramObject" id="do-nodo-sad"
+               archimateElement="id-nodo-sad"
+               fillColor="#C9E7B7" textAlignment="2">
+          <bounds x="25" y="320" width="420" height="240"/>
+          <sourceConnection xsi:type="archimate:Connection" id="conn-12"
+                            source="do-nodo-sad" target="do-proc-bkp" archimateRelationship="rel-12"/>
+
+          <child xsi:type="archimate:DiagramObject" id="do-sad"
+                 archimateElement="id-sad" targetConnections="conn-05"
+                 fillColor="#B5FFFF" textAlignment="2">
+            <bounds x="20" y="45" width="250" height="180"/>
+
+            <child xsi:type="archimate:DiagramObject" id="do-sad-vista"
+                   archimateElement="id-sad-vista"
+                   fillColor="#B5FFFF" textAlignment="2">
+              <bounds x="15" y="40" width="100" height="45"/>
+            </child>
+            <child xsi:type="archimate:DiagramObject" id="do-sad-ctrl"
+                   archimateElement="id-sad-ctrl"
+                   fillColor="#B5FFFF" textAlignment="2">
+              <bounds x="125" y="40" width="110" height="45"/>
+            </child>
+            <child xsi:type="archimate:DiagramObject" id="do-sad-model"
+                   archimateElement="id-sad-model"
+                   fillColor="#B5FFFF" textAlignment="2">
+              <bounds x="55" y="100" width="150" height="55"/>
+              <sourceConnection xsi:type="archimate:Connection" id="conn-07"
+                                source="do-sad-model" target="do-do-sad" archimateRelationship="rel-07"/>
+            </child>
+          </child>
+
+          <child xsi:type="archimate:DiagramObject" id="do-bd-sad"
+                 archimateElement="id-bd-sad"
+                 fillColor="#C9E7B7" textAlignment="2">
+            <bounds x="285" y="45" width="120" height="150"/>
+
+            <child xsi:type="archimate:DiagramObject" id="do-do-sad"
+                   archimateElement="id-do-sad" targetConnections="conn-07"
+                   fillColor="#B5FFFF" textAlignment="2">
+              <bounds x="12" y="65" width="96" height="50"/>
+            </child>
+          </child>
+        </child>
+      </child>
+
+      <!-- ══ NUBE AWS ══ -->
+      <child xsi:type="archimate:DiagramObject" id="do-loc-aws"
+             archimateElement="id-loc-aws"
+             fillColor="#E8C6DC" textAlignment="2">
+        <bounds x="940" y="140" width="300" height="270"/>
+
+        <child xsi:type="archimate:DiagramObject" id="do-nodo-sc2"
+               archimateElement="id-nodo-sc2"
+               fillColor="#C9E7B7" textAlignment="2">
+          <bounds x="25" y="50" width="250" height="185"/>
+
+          <child xsi:type="archimate:DiagramObject" id="do-bd-sc2"
+                 archimateElement="id-bd-sc2" targetConnections="conn-08"
+                 fillColor="#C9E7B7" textAlignment="2">
+            <bounds x="20" y="55" width="210" height="100"/>
+            <sourceConnection xsi:type="archimate:Connection" id="conn-09"
+                              source="do-bd-sc2" target="do-bd-sc1" archimateRelationship="rel-09"/>
+          </child>
+        </child>
+      </child>
+
+      <!-- ══ SERVIDOR DE RESPALDOS (abajo) ══ -->
+      <child xsi:type="archimate:DiagramObject" id="do-srv-bkp"
+             archimateElement="id-srv-bkp"
+             fillColor="#C9E7B7" textAlignment="2">
+        <bounds x="300" y="780" width="650" height="200"/>
+
+        <child xsi:type="archimate:DiagramObject" id="do-proc-bkp"
+               archimateElement="id-proc-bkp" targetConnections="conn-10 conn-11 conn-12"
+               fillColor="#C9E7B7" textAlignment="2">
+          <bounds x="20" y="55" width="210" height="100"/>
+          <sourceConnection xsi:type="archimate:Connection" id="conn-13"
+                            source="do-proc-bkp" target="do-art-caja" archimateRelationship="rel-13"/>
+          <sourceConnection xsi:type="archimate:Connection" id="conn-14"
+                            source="do-proc-bkp" target="do-art-sc" archimateRelationship="rel-14"/>
+          <sourceConnection xsi:type="archimate:Connection" id="conn-15"
+                            source="do-proc-bkp" target="do-art-sad" archimateRelationship="rel-15"/>
+          <sourceConnection xsi:type="archimate:Connection" id="conn-16"
+                            source="do-proc-bkp" target="do-proc-envio" archimateRelationship="rel-16"/>
+        </child>
+
+        <child xsi:type="archimate:DiagramObject" id="do-art-caja"
+               archimateElement="id-art-caja" targetConnections="conn-13"
+               fillColor="#C9E7B7" textAlignment="2">
+          <bounds x="270" y="40" width="170" height="42"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="do-art-sc"
+               archimateElement="id-art-sc" targetConnections="conn-14"
+               fillColor="#C9E7B7" textAlignment="2">
+          <bounds x="270" y="92" width="170" height="42"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="do-art-sad"
+               archimateElement="id-art-sad" targetConnections="conn-15"
+               fillColor="#C9E7B7" textAlignment="2">
+          <bounds x="270" y="144" width="170" height="42"/>
+        </child>
+      </child>
+
+      <!-- ══ PROCESO ENVIO 11PM ══ -->
+      <child xsi:type="archimate:DiagramObject" id="do-proc-envio"
+             archimateElement="id-proc-envio" targetConnections="conn-16"
+             fillColor="#FFFFB5" textAlignment="2">
+        <bounds x="1000" y="820" width="240" height="80"/>
+        <sourceConnection xsi:type="archimate:Connection" id="conn-17"
+                          source="do-proc-envio" target="do-caja" archimateRelationship="rel-17"/>
+      </child>
+
+    </element>
+  </folder>
+
+</archimate:model>
